@@ -12,7 +12,7 @@ const elements = {
     loadMoreBtn: document.querySelector('.load-more'),
     guard: document.querySelector('.js-guard')
 };
-console.log(elements.guard);
+
 let page ;
 const limitPages = 40;
 
@@ -98,7 +98,7 @@ function createMarkup(arr) {
 
 // async function addMoreImages() {
 //     page += 1;
-//     const inputQuery = elements.input.value.trim();
+//     let inputQuery = elements.input.value.trim();
 //     try {
 //         const data = await fetchSearch(inputQuery, page);
 //         createMarkup(data.hits);
@@ -131,11 +131,20 @@ function handlerInfinityScroll(entries) {
     entries.forEach((entry) => {
         console.log(entry);
         if (entry.isIntersecting) {
-            page += 1;          
-            fetchSearch(page)
+            page += 1; 
+            let inputQuery = elements.input.value.trim(); 
+            fetchSearch(inputQuery, page)
             .then((data) => {
                 createMarkup(data.hits);
-                lightbox.refresh()
+                lightbox.refresh();
+                const { height: cardHeight } = document.querySelector(".gallery").firstElementChild.getBoundingClientRect();                
+                window.scrollBy({
+                    top: cardHeight,
+                    behavior: "smooth"
+                })
+                if (page > data.totalHits / limitPages) {
+                    observer.unobserve(elements.guard);
+                }
             })
             .catch((error) => {
                 Notiflix.Notify.failure('Error while fetching images. Please try again.');
