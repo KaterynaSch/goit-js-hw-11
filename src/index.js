@@ -9,9 +9,10 @@ const elements = {
     input: document.querySelector('input[name="searchQuery"]'),
     serchButton: document.querySelector('button[type="submit"]'),
     galleryImg: document.querySelector('.gallery'),
-    loadMoreBtn: document.querySelector('.load-more')
+    loadMoreBtn: document.querySelector('.load-more'),
+    guard: document.querySelector('.js-guard')
 };
-
+console.log(elements.guard);
 let page ;
 const limitPages = 40;
 
@@ -40,7 +41,8 @@ async function handlerSubmit(evt) {
             
         } else {        
         createMarkup(data.hits);
-        elements.loadMoreBtn.style.display = 'block';
+        // elements.loadMoreBtn.style.display = 'block';
+        observer.observe(elements.guard);//--inf-scroll
         lightbox.refresh();
             Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`)       
         }        
@@ -90,28 +92,56 @@ function createMarkup(arr) {
     elements.galleryImg.insertAdjacentHTML('beforeend', item);
 }
 
-elements.loadMoreBtn.addEventListener('click', addMoreImages); 
 
-async function addMoreImages() {  
-    page += 1;    
-    const inputQuery = elements.input.value.trim();
-    try {
-        const data = await fetchSearch(inputQuery, page);
-        createMarkup(data.hits);
-        lightbox.refresh();
-        const { height: cardHeight } = document.querySelector(".gallery").firstElementChild.getBoundingClientRect();
-        window.scrollBy({
-        top: cardHeight,
-        behavior: "smooth",
-        });    
+// ------------------------Load more-------------------
+// elements.loadMoreBtn.addEventListener('click', addMoreImages);
+
+// async function addMoreImages() {
+//     page += 1;
+//     const inputQuery = elements.input.value.trim();
+//     try {
+//         const data = await fetchSearch(inputQuery, page);
+//         createMarkup(data.hits);
+//         lightbox.refresh();
+//         const { height: cardHeight } = document.querySelector(".gallery").firstElementChild.getBoundingClientRect();
+//         window.scrollBy({
+//         top: cardHeight,
+//         behavior: "smooth",
+//         });
         
-        if (page > data.totalHits / limitPages) {  
-            elements.loadMoreBtn.style.display = 'none';
-            Notiflix.Notify.warning(
-                "We're sorry, but you've reached the end of search results."
-            );
-        }
-    } catch (error) {
-       Notiflix.Notify.failure('Error while fetching images. Please try again.'); 
-    };
+//         if (page > data.totalHits / limitPages) {
+//             elements.loadMoreBtn.style.display = 'none';
+//             Notiflix.Notify.warning(
+//                 "We're sorry, but you've reached the end of search results."
+//             );
+//         }
+//     } catch (error) {
+//        Notiflix.Notify.failure('Error while fetching images. Please try again.');
+//     };
+// };
+
+// ----------------------------------Infinity scroll-----------------------
+
+const options = {
+    root: null,
+    rootMargin: '450px',
+};
+const observer = new IntersectionObserver(handlerInfinityScroll, options);
+function handlerInfinityScroll(entries) {
+    entries.forEach((entry) => {
+        console.log(entry);
+        if (entry.isIntersecting) {
+            page += 1;          
+            fetchSearch(page)
+            .then((data) => {
+                createMarkup(data.hits);
+                lightbox.refresh()
+            })
+            .catch((error) => {
+                Notiflix.Notify.failure('Error while fetching images. Please try again.');
+            });
+    
+        }    
+        
+    })
 };
