@@ -41,10 +41,11 @@ async function handlerSubmit(evt) {
             
         } else {        
         createMarkup(data.hits);
-        // elements.loadMoreBtn.style.display = 'block';
-        observer.observe(elements.guard);//--inf-scroll
+            // elements.loadMoreBtn.style.display = 'block'; 
+        observer.observe(elements.guard);//--inf-scroll       
         lightbox.refresh();
-            Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`)       
+        Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`) 
+            
         }        
             
     }
@@ -123,34 +124,34 @@ function createMarkup(arr) {
 // ----------------------------------Infinity scroll-----------------------
 
 const options = {
-    root: null,
     rootMargin: '450px',
 };
-const observer = new IntersectionObserver(handlerInfinityScroll, options);
+const observer = new IntersectionObserver(handlerInfinityScroll, options)
 function handlerInfinityScroll(entries) {
     entries.forEach((entry) => {
-        console.log(entry);
+        
         if (entry.isIntersecting) {
-            page += 1; 
-            let inputQuery = elements.input.value.trim(); 
+            page += 1;
+            let inputQuery = elements.input.value.trim();
             fetchSearch(inputQuery, page)
             .then((data) => {
                 createMarkup(data.hits);
                 lightbox.refresh();
-                const { height: cardHeight } = document.querySelector(".gallery").firstElementChild.getBoundingClientRect();                
+                const { height: cardHeight } = document.querySelector(".gallery").firstElementChild.getBoundingClientRect();
                 window.scrollBy({
                     top: cardHeight,
                     behavior: "smooth"
                 })
                 if (page > data.totalHits / limitPages) {
                     observer.unobserve(elements.guard);
+                    Notiflix.Notify.warning(
+                        "We're sorry, but you've reached the end of search results."
+                    );
                 }
             })
             .catch((error) => {
                 Notiflix.Notify.failure('Error while fetching images. Please try again.');
             });
-    
-        }    
-        
-    })
-};
+        };
+    });
+};   
